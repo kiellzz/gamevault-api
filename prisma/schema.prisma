@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  collection GameCollection[]
+  reviews    Review[]
+}
+
+model Game {
+  id          Int      @id @default(autoincrement())
+  title       String
+  genre       String
+  platform    String
+  releaseYear Int
+  coverUrl    String?
+  createdAt   DateTime @default(now())
+
+  collection GameCollection[]
+  reviews    Review[]
+}
+
+model GameCollection {
+  id        Int            @id @default(autoincrement())
+  status    CollectionStatus
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  userId Int
+  gameId Int
+
+  user User @relation(fields: [userId], references: [id])
+  game Game @relation(fields: [gameId], references: [id])
+
+  @@unique([userId, gameId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int
+  gameId Int
+
+  user User @relation(fields: [userId], references: [id])
+  game Game @relation(fields: [gameId], references: [id])
+
+  @@unique([userId, gameId])
+}
+
+enum CollectionStatus {
+  playing
+  completed
+  dropped
+  wishlist
+}
