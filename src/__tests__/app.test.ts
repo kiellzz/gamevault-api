@@ -5,6 +5,10 @@ describe("GameVault API", () => {
   let token: string;
   let gameId: number;
 
+  // Evita conflito com banco “sujo” (usuário já existente)
+  const email = `test_${Date.now()}@test.com`;
+  const password = "123456";
+
   it("GET /health → deve retornar status ok", async () => {
     const res = await request(app).get("/health");
     expect(res.status).toBe(200);
@@ -14,18 +18,20 @@ describe("GameVault API", () => {
   it("POST /api/users/register → deve criar um usuário", async () => {
     const res = await request(app).post("/api/users/register").send({
       name: "Test User",
-      email: "test@test.com",
-      password: "123456",
+      email,
+      password,
     });
+
     expect(res.status).toBe(201);
-    expect(res.body.email).toBe("test@test.com");
+    expect(res.body.email).toBe(email);
   });
 
   it("POST /api/users/login → deve retornar token", async () => {
     const res = await request(app).post("/api/users/login").send({
-      email: "test@test.com",
-      password: "123456",
+      email,
+      password,
     });
+
     expect(res.status).toBe(200);
     expect(res.body.token).toBeDefined();
     token = res.body.token;
@@ -41,6 +47,7 @@ describe("GameVault API", () => {
         platform: "PlayStation",
         releaseYear: 2018,
       });
+
     expect(res.status).toBe(201);
     expect(res.body.title).toBe("God of War");
     gameId = res.body.id;
@@ -57,6 +64,7 @@ describe("GameVault API", () => {
       .post(`/api/games/${gameId}/collection`)
       .set("Authorization", `Bearer ${token}`)
       .send({ status: "playing" });
+
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("playing");
   });
@@ -66,6 +74,7 @@ describe("GameVault API", () => {
       .post(`/api/games/${gameId}/review`)
       .set("Authorization", `Bearer ${token}`)
       .send({ rating: 9, content: "Incrível!" });
+
     expect(res.status).toBe(200);
     expect(res.body.rating).toBe(9);
   });
@@ -76,6 +85,7 @@ describe("GameVault API", () => {
       email: "emailinvalido",
       password: "123",
     });
+
     expect(res.status).toBe(400);
     expect(res.body.erros).toBeDefined();
   });
